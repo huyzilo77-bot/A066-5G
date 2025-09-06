@@ -120,17 +120,20 @@ jobs:
           cd ../kernel
           bash build/build.sh -j$(nproc)
 
-      - name: Package AnyKernel3 (KernelSU + SUSFS)
+      - name: 📦 Package AnyKernel3 (KernelSU + SUSFS)
         run: |
           set -eux
-          DIST_DIR=../dist
+          DIST_DIR=out/target/product/a06x/obj/KERNEL_OBJ/arch/arm64/boot
           IMG=$(find $DIST_DIR -maxdepth 1 -type f -name "Image*" | head -n 1 || true)
+
           if [ -z "$IMG" ]; then
             echo "❌ Không tìm thấy kernel Image trong $DIST_DIR"
             exit 1
           fi
+
           cp "$IMG" AnyKernel3/Image
           cp -r $DIST_DIR/dtbo* AnyKernel3/ || true
+
           cd AnyKernel3
           zip -r9 "../Kernel-A06-5.15-KSU-SUSFS.zip" . -x .git README.md *.zip
 
