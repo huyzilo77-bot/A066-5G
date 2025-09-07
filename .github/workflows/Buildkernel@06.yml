@@ -46,31 +46,31 @@ jobs:
           fi
 
       - name: Build kernel (a06x_defconfig)
-      run: |
-        export ARCH=arm64
-        export SUBARCH=arm64
-        export CC=clang
-        export LLVM=1
-        export CROSS_COMPILE=aarch64-linux-gnu-
-        export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+        run: |
+          export ARCH=arm64
+          export SUBARCH=arm64
+          export CC=clang
+          export LLVM=1
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
 
-        cd kernel-5.15
-        make a06x_defconfig SHELL=/bin/bash
+          cd kernel-5.15
+          make a06x_defconfig SHELL=/bin/bash
 
-        # Disable kheaders + BTF để tránh lỗi CI
-        make scripts
-        ./scripts/config --disable IKHEADERS || true
-        ./scripts/config --disable DEBUG_INFO_BTF || true
-        ./scripts/config --disable BPF || true
-        ./scripts/config --disable BPF_SYSCALL || true
-        ./scripts/config --disable CONFIG_PAHOLE || true
-        make olddefconfig
+          # Disable kheaders + BTF để tránh lỗi CI
+          make scripts
+          ./scripts/config --disable IKHEADERS || true
+          ./scripts/config --disable DEBUG_INFO_BTF || true
+          ./scripts/config --disable BPF || true
+          ./scripts/config --disable BPF_SYSCALL || true
+          ./scripts/config --disable CONFIG_PAHOLE || true
+          make olddefconfig
 
-        make prepare SHELL=/bin/bash
-        make -j4 SHELL=/bin/bash
+          make prepare SHELL=/bin/bash
+          make -j4 SHELL=/bin/bash
 
-        echo "✅ Build complete"
-        ls -lh arch/arm64/boot/
+          echo "✅ Build complete"
+          ls -lh arch/arm64/boot/
 
       - name: Upload Image.gz-dtb
         uses: actions/upload-artifact@v4
