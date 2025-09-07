@@ -1,11 +1,11 @@
-name: Build A066 Kernel v4 (Clean)
+name: Build A066 Kernel v5.1 (Clean + Repack boot.img from Release)
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:   # Cho phép chạy thủ công từ tab Actions
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4   # bản mới nhất
+      uses: actions/checkout@v4
 
     - name: Setup toolchain (Proton Clang)
       run: |
@@ -32,16 +32,57 @@ jobs:
         echo "✅ Build complete"
         ls -lh arch/arm64/boot/
 
+    - name: Upload Image.gz-dtb
+      uses: actions/upload-artifact@v4
+      with:
+        name: Image.gz-dtb
+        path: kernel-5.15/arch/arm64/boot/Image.gz-dtb
+
     - name: Pack with AnyKernel3
       run: |
         git clone https://github.com/osm0sis/AnyKernel3.git
         cp kernel-5.15/arch/arm64/boot/Image.gz-dtb AnyKernel3/
         cd AnyKernel3
-        zip -r9 ../A066-Kernel-v4.zip ./*
+        zip -r9 ../A066-Kernel-v5.zip ./*
         echo "✅ Packed AnyKernel3 zip"
 
-    - name: Upload artifact
+    - name: Upload AnyKernel3 zip
       uses: actions/upload-artifact@v4
       with:
-        name: A066-Kernel-v4
-        path: A066-Kernel-v4.zip
+        name: A066-Kernel-v5
+        path: A066-Kernel-v5.zip
+
+    - name: Download stock boot.img from release
+      run: |
+        curl -L -o boot.img https://github.com/huyzilo77-bot/A066-5G/releases/download/V1/boot.img
+
+    - name: Repack boot.img
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cpio python3
+        git clone https://github.com/osm0sis/mkbootimg_tools.git
+        # Unpack boot.img
+        mkdir boot_orig
+        cd boot_orig
+        ../mkbootimg_tools/unpackbootimg -i ../boot.img
+
+        # Replace kernel with the new one
+        cp ../kernel-5.15/arch/arm64/boot/Image.gz-dtb ./zImage
+
+        # Repack boot.img
+        ../mkbootimg_tools/mkbootimg \
+          --kernel ./zImage \
+          --ramdisk ./ramdisk.cpio.gz \
+          --dtb ./dtb \
+          --base $(cat boot.img-base 2>/dev/null || echo 0x40000000) \
+          --pagesize $(cat boot.img-pagesize 2>/dev/null || echo 2048) \
+          --cmdline "$(cat boot.img-cmdline 2>/dev/null)" \
+          -o ../boot-new.img
+        cd ..
+        echo "✅ Repacked boot-new.img"
+
+    - name: Upload repacked boot.img
+      uses: actions/upload-artifact@v4
+      with:
+        name: boot-new
+        path: boot-new.img
