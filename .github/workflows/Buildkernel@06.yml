@@ -78,12 +78,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Image.gz-dtb
-          path: A066-5G/arch/arm64/boot/Image.gz-dtb
+          path: kernel-5.15/arch/arm64/boot/Image.gz-dtb
 
       - name: Pack with AnyKernel3
         run: |
           git clone https://github.com/osm0sis/AnyKernel3.git
-          cp A066-5G/arch/arm64/boot/Image.gz-dtb AnyKernel3/
+          cp kernel-5.15/arch/arm64/boot/Image.gz-dtb AnyKernel3/
           cd AnyKernel3
           zip -r9 ../A066-Kernel.zip ./*
           echo "✅ Packed AnyKernel3 zip"
@@ -106,7 +106,7 @@ jobs:
           ../mkbootimg_tools/unpackbootimg -i ../boot.img
 
           # Replace kernel with the new one
-          cp ../A066-5G/arch/arm64/boot/Image.gz-dtb ./zImage
+          cp ../kernel-5.15/arch/arm64/boot/Image.gz-dtb ./zImage
 
           # Repack boot.img
           ../mkbootimg_tools/mkbootimg \
