@@ -1,4 +1,4 @@
-name: Build A066 Kernel v6 (Clang + Repack boot.img)
+name: Build A066 Kernel v6.1 (Clang 18 + Repack boot.img)
 
 on:
   push:
@@ -19,12 +19,10 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          gcc g++ make \
-          bison flex libncurses5-dev \
           gcc-aarch64-linux-gnu \
           gcc-arm-linux-gnueabi \
-          cpio python3 \
-          libelf-dev libssl-dev
+          bc bison flex libssl-dev libelf-dev \
+          build-essential cpio python3
 
     - name: Install LLVM/Clang 18
       run: |
@@ -38,8 +36,11 @@ jobs:
         chmod +x kernel-5.15/scripts/* || true
         chmod +x kernel-5.15/scripts/*/* || true
         chmod +x kernel-5.15/scripts/remove-stale-files || true
+        if ! head -n1 kernel-5.15/scripts/remove-stale-files | grep -q '^#!'; then
+          sed -i '1i #!/bin/sh' kernel-5.15/scripts/remove-stale-files
+        fi
 
-    - name: Build kernel (a06x_defconfig) with Clang
+    - name: Build kernel (a06x_defconfig)
       run: |
         export ARCH=arm64
         export SUBARCH=arm64
@@ -50,7 +51,6 @@ jobs:
         cd kernel-5.15
         make a06x_defconfig SHELL=/bin/bash
         make prepare SHELL=/bin/bash
-        chmod +x scripts/remove-stale-files || true
         make -j$(nproc) SHELL=/bin/bash
         echo "✅ Build complete"
         ls -lh arch/arm64/boot/
@@ -66,14 +66,14 @@ jobs:
         git clone https://github.com/osm0sis/AnyKernel3.git
         cp kernel-5.15/arch/arm64/boot/Image.gz-dtb AnyKernel3/
         cd AnyKernel3
-        zip -r9 ../A066-Kernel-v6.zip ./*
+        zip -r9 ../A066-Kernel-v6.1.zip ./*
         echo "✅ Packed AnyKernel3 zip"
 
     - name: Upload AnyKernel3 zip
       uses: actions/upload-artifact@v4
       with:
-        name: A066-Kernel-v6
-        path: A066-Kernel-v6.zip
+        name: A066-Kernel-v6.1
+        path: A066-Kernel-v6.1.zip
 
     - name: Download stock boot.img from release
       run: |
@@ -86,8 +86,10 @@ jobs:
         cd boot_orig
         ../mkbootimg_tools/unpackbootimg -i ../boot.img
 
+        # Replace kernel with the new one
         cp ../kernel-5.15/arch/arm64/boot/Image.gz-dtb ./zImage
 
+        # Repack boot.img
         ../mkbootimg_tools/mkbootimg \
           --kernel ./zImage \
           --ramdisk ./ramdisk.cpio.gz \
