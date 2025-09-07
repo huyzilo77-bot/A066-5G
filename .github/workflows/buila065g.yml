@@ -41,11 +41,12 @@ jobs:
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
         cd kernel-5.15
-        # Chuẩn bị host tools trước
+        # Tạo file .config trước
+        make a06x_defconfig SHELL=/bin/bash
+        # Build host tools và chuẩn bị
         make prepare SHELL=/bin/bash
         chmod +x scripts/remove-stale-files || true
-        # Build config & kernel
-        make a06x_defconfig SHELL=/bin/bash
+        # Build kernel
         make -j$(nproc) SHELL=/bin/bash
         echo "✅ Build complete"
         ls -lh arch/arm64/boot/
