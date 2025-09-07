@@ -45,10 +45,11 @@ jobs:
             sed -i '1i #!/bin/sh' scripts/remove-stale-files
           fi
 
-      - name: Patch Makefile to disable resolve_btfids
+      - name: Patch Makefile to skip resolve_btfids
         run: |
           cd kernel-5.15
-          sed -i 's@^RESOLVE_BTFIDS.*@RESOLVE_BTFIDS := echo@' Makefile
+          # Xoá toàn bộ các dòng có resolve_btfids trong Makefile
+          sed -i '/resolve_btfids/d' Makefile
 
       - name: Build kernel (a06x_defconfig)
         run: |
@@ -72,10 +73,10 @@ jobs:
 
           make prepare SHELL=/bin/bash
 
-          # 🔧 Patch để vô hiệu hóa resolve_btfids
-          sed -i 's@^RESOLVE_BTFIDS.*@RESOLVE_BTFIDS := echo@' Makefile
+          # 🔧 Xoá hẳn rule resolve_btfids
+          sed -i '/resolve_btfids/d' Makefile
 
-          # ✅ Build chỉ kernel image
+          # ✅ Build kernel image
           make -j4 Image.gz-dtb SHELL=/bin/bash
 
           echo "✅ Build complete"
