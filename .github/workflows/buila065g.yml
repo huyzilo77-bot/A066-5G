@@ -30,20 +30,10 @@ jobs:
         echo "$(pwd)/clang-14/bin" >> $GITHUB_PATH
         clang --version
 
-    - name: Fix permissions for kernel scripts (safe)
+    - name: Fix permissions for scripts
       run: |
-        if [ -d "A066-5G/scripts" ]; then
-          chmod +x A066-5G/scripts/* || true
-          chmod +x A066-5G/scripts/*/* || true
-          if [ -f "A066-5G/scripts/remove-stale-files" ]; then
-            chmod +x A066-5G/scripts/remove-stale-files
-            if ! head -n1 A066-5G/scripts/remove-stale-files | grep -q '^#!'; then
-              sed -i '1i #!/bin/sh' A066-5G/scripts/remove-stale-files
-            fi
-          fi
-        else
-          echo "ℹ️ No scripts/ directory found, skipping fix."
-        fi
+        chmod +x kernel-5.15/scripts/*.sh || true
+        chmod +x kernel-5.15/scripts/*/*.sh || true
 
     - name: Build kernel (a06x_defconfig)
       run: |
@@ -53,13 +43,17 @@ jobs:
         export LLVM=1
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
-        
+
         cd kernel-5.15
+
+        # Fix permission scripts
+        chmod +x scripts/*.sh || true
+        chmod +x scripts/*/*.sh || true
 
         # Load đúng defconfig
         make a06x_defconfig SHELL=/bin/bash
 
-        # Fix disable IKHEADERS để tránh lỗi kheaders_data
+        # Disable IKHEADERS để tránh lỗi kheaders_data
         make scripts
         ./scripts/config --disable IKHEADERS || true
         make olddefconfig
