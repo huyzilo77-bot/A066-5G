@@ -45,12 +45,12 @@ jobs:
             sed -i '1i #!/bin/sh' scripts/remove-stale-files
           fi
 
-          - name: Patch Makefile to disable resolve_btfids
+      - name: Patch Makefile to disable resolve_btfids
         run: |
           cd kernel-5.15
           sed -i 's@^RESOLVE_BTFIDS.*@RESOLVE_BTFIDS := echo@' Makefile
 
-        - name: Build kernel (a06x_defconfig)
+      - name: Build kernel (a06x_defconfig)
         run: |
           export ARCH=arm64
           export SUBARCH=arm64
@@ -132,3 +132,4 @@ jobs:
         with:
           name: boot-new
           path: boot-new.img
+          
