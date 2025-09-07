@@ -47,9 +47,7 @@ jobs:
 
       - name: Patch Makefile to skip resolve_btfids
         run: |
-          cd kernel-5.15
-          # Xoá toàn bộ các dòng có resolve_btfids trong Makefile
-          sed -i '/resolve_btfids/d' Makefile
+          sed -i 's/resolve_btfids/# resolve_btfids/' kernel-5.15/Makefile
 
       - name: Build kernel (a06x_defconfig)
         run: |
