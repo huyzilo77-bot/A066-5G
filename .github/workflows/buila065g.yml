@@ -23,17 +23,28 @@ jobs:
           gcc-arm-linux-gnueabi \
           cpio python3
 
+     - name: Fix permissions for kernel scripts
+      run: |
+        # Cấp quyền thực thi cho toàn bộ scripts
+        chmod +x kernel-5.15/scripts/* || true
+        chmod +x kernel-5.15/scripts/*/* || true
+
+        # Fix riêng cho remove-stale-files
+        chmod +x kernel-5.15/scripts/remove-stale-files || true
+        # Nếu thiếu shebang thì chèn thêm
+        if ! head -n1 kernel-5.15/scripts/remove-stale-files | grep -q '^#!'; then
+          sed -i '1i #!/bin/sh' kernel-5.15/scripts/remove-stale-files
+        fi
+
     - name: Build kernel (a06x_defconfig)
       run: |
         export ARCH=arm64
         export SUBARCH=arm64
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
-        chmod +x kernel-5.15/scripts/* || true
-        chmod +x kernel-5.15/scripts/*/* || true
         cd kernel-5.15
-        make a06x_defconfig
-        make -j$(nproc)
+        make a06x_defconfig SHELL=/bin/bash
+        make -j$(nproc) SHELL=/bin/bash
         echo "✅ Build complete"
         ls -lh arch/arm64/boot/
 
