@@ -31,9 +31,20 @@ jobs:
         clang --version
 
     - name: Fix permissions for scripts
+    - name: Install dwarves (pahole)
       run: |
-        chmod +x kernel-5.15/scripts/*.sh || true
-        chmod +x kernel-5.15/scripts/*/*.sh || true
+        sudo apt-get update
+        sudo apt-get install -y dwarves
+
+    - name: Fix kernel scripts permissions
+      run: |
+        cd kernel-5.15
+        chmod +x scripts/*.sh || true
+        chmod +x scripts/*/*.sh || true
+        chmod +x scripts/remove-stale-files || true
+        if ! head -n1 scripts/remove-stale-files | grep -q '^#!'; then
+          sed -i '1i #!/bin/sh' scripts/remove-stale-files
+        fi
 
     - name: Build kernel (a06x_defconfig)
       run: |
@@ -45,22 +56,14 @@ jobs:
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
 
         cd kernel-5.15
-
-        # Fix permission scripts
-        chmod +x scripts/*.sh || true
-        chmod +x scripts/*/*.sh || true
-
-        # Load đúng defconfig
         make a06x_defconfig SHELL=/bin/bash
 
-        # Disable IKHEADERS để tránh lỗi kheaders_data
         make scripts
         ./scripts/config --disable IKHEADERS || true
         make olddefconfig
 
-        # Build kernel
         make prepare SHELL=/bin/bash
-        make -j$(nproc) SHELL=/bin/bash
+        make -j4 SHELL=/bin/bash   # <= giảm xuống 4 để tránh OOM
 
         echo "✅ Build complete"
         ls -lh arch/arm64/boot/
