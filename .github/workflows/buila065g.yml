@@ -1,4 +1,4 @@
-name: Build A066 Kernel v5.3 (Clean + Repack boot.img with GCC)
+name: Build A066 Kernel v5.4 (Clean + Repack boot.img with GCC)
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
           gcc-arm-linux-gnueabi \
           cpio python3
 
-     - name: Fix permissions for kernel scripts
+    - name: Fix permissions for kernel scripts
       run: |
         # Cấp quyền thực thi cho toàn bộ scripts
         chmod +x kernel-5.15/scripts/* || true
@@ -59,14 +59,14 @@ jobs:
         git clone https://github.com/osm0sis/AnyKernel3.git
         cp kernel-5.15/arch/arm64/boot/Image.gz-dtb AnyKernel3/
         cd AnyKernel3
-        zip -r9 ../A066-Kernel-v5.3.zip ./*
+        zip -r9 ../A066-Kernel-v5.4.zip ./*
         echo "✅ Packed AnyKernel3 zip"
 
     - name: Upload AnyKernel3 zip
       uses: actions/upload-artifact@v4
       with:
-        name: A066-Kernel-v5.3
-        path: A066-Kernel-v5.3.zip
+        name: A066-Kernel-v5.4
+        path: A066-Kernel-v5.4.zip
 
     - name: Download stock boot.img from release
       run: |
