@@ -24,12 +24,13 @@ jobs:
           bc bison flex libssl-dev libelf-dev \
           build-essential cpio python3
 
-    - name: Install LLVM/Clang 18
+    - name: Install AOSP Prebuilt Clang
       run: |
-        wget https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/clang%2Bllvm-18.1.8-x86_64-linux-gnu-ubuntu-22.04.tar.xz
-        tar -xf clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-22.04.tar.xz
-        sudo mv clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-22.04 /usr/local/clang-18
-        echo "/usr/local/clang-18/bin" >> $GITHUB_PATH
+        git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang-prebuilt
+        # lấy bản mới nhất trong thư mục prebuilts
+        CLANG_DIR=$(ls clang-prebuilt | grep clang- | sort -V | tail -n1)
+        echo "$(pwd)/clang-prebuilt/$CLANG_DIR/bin" >> $GITHUB_PATH
+        clang --version
 
     - name: Fix permissions for kernel scripts
       run: |
