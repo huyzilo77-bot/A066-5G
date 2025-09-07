@@ -25,11 +25,11 @@ jobs:
           build-essential cpio python3
 
     - name: Install LLVM/Clang 18
-  run: |
-    wget https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-    tar -xf clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-22.04.tar.xz
-    sudo mv clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-22.04 /usr/local/clang-18
-    echo "/usr/local/clang-18/bin" >> $GITHUB_PATH
+      run: |
+        wget https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/clang%2Bllvm-18.1.8-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+        tar -xf clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+        sudo mv clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-22.04 /usr/local/clang-18
+        echo "/usr/local/clang-18/bin" >> $GITHUB_PATH
 
     - name: Fix permissions for kernel scripts
       run: |
