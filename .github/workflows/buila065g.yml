@@ -1,4 +1,4 @@
-name: Build A066 Kernel v5.9 (Clean + Repack boot.img with GCC)
+name: Build A066 Kernel v6 (Clang + Repack boot.img)
 
 on:
   push:
@@ -26,16 +26,25 @@ jobs:
           cpio python3 \
           libelf-dev libssl-dev
 
+    - name: Install LLVM/Clang 18
+      run: |
+        wget https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+        tar -xf clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+        sudo mv clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-22.04 /usr/local/clang-18
+        echo "/usr/local/clang-18/bin" >> $GITHUB_PATH
+
     - name: Fix permissions for kernel scripts
       run: |
         chmod +x kernel-5.15/scripts/* || true
         chmod +x kernel-5.15/scripts/*/* || true
         chmod +x kernel-5.15/scripts/remove-stale-files || true
 
-    - name: Build kernel (a06x_defconfig)
+    - name: Build kernel (a06x_defconfig) with Clang
       run: |
         export ARCH=arm64
         export SUBARCH=arm64
+        export CC=clang
+        export LLVM=1
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
         cd kernel-5.15
@@ -57,14 +66,14 @@ jobs:
         git clone https://github.com/osm0sis/AnyKernel3.git
         cp kernel-5.15/arch/arm64/boot/Image.gz-dtb AnyKernel3/
         cd AnyKernel3
-        zip -r9 ../A066-Kernel-v5.9.zip ./*
+        zip -r9 ../A066-Kernel-v6.zip ./*
         echo "✅ Packed AnyKernel3 zip"
 
     - name: Upload AnyKernel3 zip
       uses: actions/upload-artifact@v4
       with:
-        name: A066-Kernel-v5.9
-        path: A066-Kernel-v5.9.zip
+        name: A066-Kernel-v6
+        path: A066-Kernel-v6.zip
 
     - name: Download stock boot.img from release
       run: |
