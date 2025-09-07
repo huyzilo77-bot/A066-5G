@@ -1,4 +1,4 @@
-name: Build A066 Kernel v5.1 (Clean + Repack boot.img from Release)
+name: Build A066 Kernel v5.3 (Clean + Repack boot.img with GCC)
 
 on:
   push:
@@ -15,22 +15,18 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@v4
 
-    - name: Setup toolchain (Proton Clang)
+    - name: Install GCC cross toolchains
       run: |
-        git clone --depth=1 https://github.com/kdrag0n/proton-clang toolchain
-
-    - name: Fix permissions
-      run: |
-        chmod +x kernel-5.15/scripts/*.sh || true
-        chmod +x kernel-5.15/scripts/*/*.sh || true
-
+        sudo apt-get update
+        sudo apt-get install -y \
+          gcc-aarch64-linux-gnu \
+          gcc-arm-linux-gnueabi \
+          cpio python3
 
     - name: Build kernel (a06x_defconfig)
       run: |
-        export PATH=$PWD/toolchain/bin:$PATH
         export ARCH=arm64
         export SUBARCH=arm64
-        export CC=clang
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
         chmod +x kernel-5.15/scripts/*.sh || true
@@ -52,14 +48,14 @@ jobs:
         git clone https://github.com/osm0sis/AnyKernel3.git
         cp kernel-5.15/arch/arm64/boot/Image.gz-dtb AnyKernel3/
         cd AnyKernel3
-        zip -r9 ../A066-Kernel-v5.zip ./*
+        zip -r9 ../A066-Kernel-v5.3.zip ./*
         echo "✅ Packed AnyKernel3 zip"
 
     - name: Upload AnyKernel3 zip
       uses: actions/upload-artifact@v4
       with:
-        name: A066-Kernel-v5
-        path: A066-Kernel-v5.zip
+        name: A066-Kernel-v5.3
+        path: A066-Kernel-v5.3.zip
 
     - name: Download stock boot.img from release
       run: |
@@ -67,10 +63,7 @@ jobs:
 
     - name: Repack boot.img
       run: |
-        sudo apt-get update
-        sudo apt-get install -y cpio python3
         git clone https://github.com/osm0sis/mkbootimg_tools.git
-        # Unpack boot.img
         mkdir boot_orig
         cd boot_orig
         ../mkbootimg_tools/unpackbootimg -i ../boot.img
