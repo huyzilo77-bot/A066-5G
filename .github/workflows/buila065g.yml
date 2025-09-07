@@ -22,26 +22,21 @@ jobs:
           gcc-aarch64-linux-gnu \
           gcc-arm-linux-gnueabi \
           bc bison flex libssl-dev libelf-dev \
-          build-essential cpio python3 xz-utils tar
+          build-essential cpio python3 xz-utils tar curl unzip
 
     - name: Install Android Clang 14.0.7
       run: |
-        # Clone toolchain clang 14.0.7
         git clone https://gitlab.com/mcdofrenchfreis/android-clang-14.0.7.git clang-14
-
-        # Add clang vào PATH
         echo "$(pwd)/clang-14/bin" >> $GITHUB_PATH
-
-        # Kiểm tra version
         clang --version
 
     - name: Fix permissions for kernel scripts
       run: |
-        chmod +x kernel-5.15/scripts/* || true
-        chmod +x kernel-5.15/scripts/*/* || true
-        chmod +x kernel-5.15/scripts/remove-stale-files || true
-        if ! head -n1 kernel-5.15/scripts/remove-stale-files | grep -q '^#!'; then
-          sed -i '1i #!/bin/sh' kernel-5.15/scripts/remove-stale-files
+        chmod +x A066-5G/scripts/* || true
+        chmod +x A066-5G/scripts/*/* || true
+        chmod +x A066-5G/scripts/remove-stale-files || true
+        if ! head -n1 A066-5G/scripts/remove-stale-files | grep -q '^#!'; then
+          sed -i '1i #!/bin/sh' A066-5G/scripts/remove-stale-files
         fi
 
     - name: Build kernel (a06x_defconfig)
@@ -52,10 +47,9 @@ jobs:
         export LLVM=1
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+        cd A066-5G
 
-        cd kernel-5.15
-
-        # Build config
+        # Load defconfig
         make a06x_defconfig SHELL=/bin/bash
 
         # Fix disable IKHEADERS để tránh lỗi kheaders_data
@@ -63,7 +57,7 @@ jobs:
         ./scripts/config --disable IKHEADERS
         make olddefconfig
 
-        # Chuẩn bị host tools & build
+        # Build kernel
         make prepare SHELL=/bin/bash
         make -j$(nproc) SHELL=/bin/bash
 
@@ -74,12 +68,12 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Image.gz-dtb
-        path: kernel-5.15/arch/arm64/boot/Image.gz-dtb
+        path: A066-5G/arch/arm64/boot/Image.gz-dtb
 
     - name: Pack with AnyKernel3
       run: |
         git clone https://github.com/osm0sis/AnyKernel3.git
-        cp kernel-5.15/arch/arm64/boot/Image.gz-dtb AnyKernel3/
+        cp A066-5G/arch/arm64/boot/Image.gz-dtb AnyKernel3/
         cd AnyKernel3
         zip -r9 ../A066-Kernel.zip ./*
         echo "✅ Packed AnyKernel3 zip"
@@ -102,7 +96,7 @@ jobs:
         ../mkbootimg_tools/unpackbootimg -i ../boot.img
 
         # Replace kernel with the new one
-        cp ../kernel-5.15/arch/arm64/boot/Image.gz-dtb ./zImage
+        cp ../A066-5G/arch/arm64/boot/Image.gz-dtb ./zImage
 
         # Repack boot.img
         ../mkbootimg_tools/mkbootimg \
