@@ -24,17 +24,17 @@ jobs:
           bc bison flex libssl-dev libelf-dev \
           build-essential cpio python3 xz-utils tar curl unzip
 
-    - name: Install Android Clang 14.0.7
-      run: |
-        git clone https://gitlab.com/mcdofrenchfreis/android-clang-14.0.7.git clang-14
-        echo "$(pwd)/clang-14/bin" >> $GITHUB_PATH
-        clang --version
+     - name: Install Android Clang 14.0.7
+        run: |
+          git clone https://gitlab.com/mcdofrenchfreis/android-clang-14.0.7.git clang-14
+          echo "$(pwd)/clang-14/bin" >> $GITHUB_PATH
+          clang --version
 
       - name: Fix permissions for scripts
-    - name: Install dwarves (pahole)
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y dwarves
+      - name: Install dwarves (pahole)
+         run: |
+           sudo apt-get update
+           sudo apt-get install -y dwarves
 
     - name: Fix kernel scripts permissions
       run: |
