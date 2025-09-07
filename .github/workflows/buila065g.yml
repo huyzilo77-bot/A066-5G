@@ -24,12 +24,15 @@ jobs:
           bc bison flex libssl-dev libelf-dev \
           build-essential cpio python3 xz-utils tar
 
-    - name: Install AOSP Prebuilt Clang (r530567)
+    - name: Install Android Clang 14.0.7
       run: |
-        wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/master/clang-r530567.tar.gz
-        mkdir -p clang-prebuilt
-        tar -xzf clang-r530567.tar.gz -C clang-prebuilt
-        echo "$(pwd)/clang-prebuilt/bin" >> $GITHUB_PATH
+        # Clone toolchain clang 14.0.7
+        git clone https://gitlab.com/mcdofrenchfreis/android-clang-14.0.7.git clang-14
+
+        # Add clang vào PATH
+        echo "$(pwd)/clang-14/bin" >> $GITHUB_PATH
+
+        # Kiểm tra version
         clang --version
 
     - name: Fix permissions for kernel scripts
@@ -49,16 +52,21 @@ jobs:
         export LLVM=1
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+
         cd kernel-5.15
+
+        # Build config
         make a06x_defconfig SHELL=/bin/bash
 
-        # ✅ Fix: Disable IKHEADERS để tránh lỗi kheaders_data.tar.xz
+        # Fix disable IKHEADERS để tránh lỗi kheaders_data
         make scripts
         ./scripts/config --disable IKHEADERS
         make olddefconfig
 
+        # Chuẩn bị host tools & build
         make prepare SHELL=/bin/bash
         make -j$(nproc) SHELL=/bin/bash
+
         echo "✅ Build complete"
         ls -lh arch/arm64/boot/
 
