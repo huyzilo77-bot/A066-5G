@@ -23,26 +23,26 @@ jobs:
           sudo apt-get install -y git wget curl unzip bc build-essential ccache \
             flex bison libssl-dev libncurses5-dev python3 clang lld
 
-      - name: 📦 Install toolchains (Clang + GCC)
+      - name: 📦 Install toolchains (Proton Clang + GCC)
         run: |
           mkdir -p ~/toolchains
           cd ~/toolchains
 
-          # Clone Clang prebuilts từ AOSP
+          # Proton Clang (nhẹ hơn nhiều so với AOSP)
           if [ ! -d "clang" ]; then
-            git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang
+            git clone --depth=1 https://github.com/kdrag0n/proton-clang.git clang
           fi
 
-          # Clone GCC cross-compiler (aarch64)
+          # GCC cross-compiler (aarch64)
           if [ ! -d "gcc64" ]; then
             git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 gcc64
           fi
 
-          # Tạo symlink để kernel nhận đúng binary (yêu cầu: aarch64-linux-android-gcc)
+          # Symlink cho kernel gọi đúng gcc
           ln -sf ~/toolchains/gcc64/bin/aarch64-linux-android-4.9-gcc ~/toolchains/gcc64/bin/aarch64-linux-android-gcc
           ln -sf ~/toolchains/gcc64/bin/aarch64-linux-android-4.9-g++ ~/toolchains/gcc64/bin/aarch64-linux-android-g++
 
-          # Xuất env để kernel build scripts nhận
+          # Xuất env
           echo "CC=clang" >> $GITHUB_ENV
           echo "CROSS_COMPILE=$HOME/toolchains/gcc64/bin/aarch64-linux-android-" >> $GITHUB_ENV
           echo "PATH=$HOME/toolchains/clang/bin:$PATH" >> $GITHUB_ENV
