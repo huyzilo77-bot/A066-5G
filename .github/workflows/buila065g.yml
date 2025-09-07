@@ -128,23 +128,32 @@ jobs:
           echo "📂 Kiểm tra dist:"
           ls -lh out/target/product/a06x/obj/KERNEL_OBJ/dist || true
 
-      - name: 📦 Package AnyKernel3 (KernelSU + SUSFS)
+      - name: Package AnyKernel3 (KernelSU + SUSFS)
         run: |
           set -eux
-          DIST_DIR=out/target/product/a06x/obj/KERNEL_OBJ/arch/arm64/boot
-          IMG=$(find $DIST_DIR -maxdepth 1 -type f -name "Image*" | head -n 1 || true)
+          # Ưu tiên lấy từ boot/
+          BOOT_DIR=out/target/product/a06x/obj/KERNEL_OBJ/arch/arm64/boot
+          DIST_DIR=out/target/product/a06x/obj/KERNEL_OBJ/dist
+
+          IMG=""
+          if [ -d "$BOOT_DIR" ]; then
+            IMG=$(find $BOOT_DIR -maxdepth 1 -type f -name "Image*" | head -n 1 || true)
+          fi
+          if [ -z "$IMG" ] && [ -d "$DIST_DIR" ]; then
+            IMG=$(find $DIST_DIR -maxdepth 1 -type f -name "Image*" | head -n 1 || true)
+          fi
 
           if [ -z "$IMG" ]; then
-            echo "❌ Không tìm thấy kernel Image trong $DIST_DIR"
+            echo "❌ Không tìm thấy kernel Image trong boot/ hoặc dist/"
             exit 1
           fi
 
           cp "$IMG" AnyKernel3/Image
+          cp -r $BOOT_DIR/dtbo* AnyKernel3/ || true
           cp -r $DIST_DIR/dtbo* AnyKernel3/ || true
-
           cd AnyKernel3
           zip -r9 "../Kernel-A06-5.15-KSU-SUSFS.zip" . -x .git README.md *.zip
-
+          
       - name: Upload Kernel Zip
         uses: actions/upload-artifact@v4
         with:
