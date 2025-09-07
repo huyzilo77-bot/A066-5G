@@ -1,11 +1,11 @@
-name: Build Clean A066 Kernel
+name: Build A066 Kernel v4 (Clean)
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:   # Cho phép bạn chạy thủ công trên GitHub
+  workflow_dispatch:   # Cho phép chạy thủ công từ tab Actions
 
 jobs:
   build:
@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - name: Checkout source
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4   # bản mới nhất
 
     - name: Setup toolchain (Proton Clang)
       run: |
@@ -29,6 +29,7 @@ jobs:
         cd kernel-5.15
         make a06x_defconfig
         make -j$(nproc)
+        echo "✅ Build complete"
         ls -lh arch/arm64/boot/
 
     - name: Pack with AnyKernel3
@@ -36,10 +37,11 @@ jobs:
         git clone https://github.com/osm0sis/AnyKernel3.git
         cp kernel-5.15/arch/arm64/boot/Image.gz-dtb AnyKernel3/
         cd AnyKernel3
-        zip -r9 ../A066-Kernel-Clean.zip ./*
+        zip -r9 ../A066-Kernel-v4.zip ./*
+        echo "✅ Packed AnyKernel3 zip"
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: A066-Kernel-Clean
-        path: A066-Kernel-Clean.zip
+        name: A066-Kernel-v4
+        path: A066-Kernel-v4.zip
