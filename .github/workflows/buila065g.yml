@@ -56,6 +56,16 @@ jobs:
         echo "✅ Build complete"
         ls -lh arch/arm64/boot/
 
+       - name: Disable IKHEADERS (fix kheaders_data.tar.xz error)
+      run: |
+        cd kernel-5.15
+        # đảm bảo có scripts/config
+        make scripts
+        # tắt IKHEADERS để không build kheaders_data.tar.xz
+        ./scripts/config --disable IKHEADERS
+        # regenerate config
+        make olddefconfig
+
     - name: Upload Image.gz-dtb
       uses: actions/upload-artifact@v4
       with:
