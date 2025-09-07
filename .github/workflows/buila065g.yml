@@ -45,7 +45,7 @@ jobs:
           echo "ℹ️ No scripts/ directory found, skipping fix."
         fi
 
-    - name: Build kernel (a06x_deconfig)
+    - name: Build kernel (a06x_defconfig)
       run: |
         export ARCH=arm64
         export SUBARCH=arm64
@@ -53,9 +53,11 @@ jobs:
         export LLVM=1
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+        
+        cd kernel-5.15
 
-        # Load đúng config
-        make a06x_deconfig SHELL=/bin/bash
+        # Load đúng defconfig
+        make a06x_defconfig SHELL=/bin/bash
 
         # Fix disable IKHEADERS để tránh lỗi kheaders_data
         make scripts
