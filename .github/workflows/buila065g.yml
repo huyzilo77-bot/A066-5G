@@ -30,7 +30,7 @@ jobs:
         echo "$(pwd)/clang-14/bin" >> $GITHUB_PATH
         clang --version
 
-    - name: Fix permissions for scripts
+      - name: Fix permissions for scripts
     - name: Install dwarves (pahole)
       run: |
         sudo apt-get update
