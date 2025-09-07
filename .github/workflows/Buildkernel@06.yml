@@ -45,7 +45,12 @@ jobs:
             sed -i '1i #!/bin/sh' scripts/remove-stale-files
           fi
 
-      - name: Build kernel (a06x_defconfig)
+          - name: Patch Makefile to disable resolve_btfids
+        run: |
+          cd kernel-5.15
+          sed -i 's@^RESOLVE_BTFIDS.*@RESOLVE_BTFIDS := echo@' Makefile
+
+        - name: Build kernel (a06x_defconfig)
         run: |
           export ARCH=arm64
           export SUBARCH=arm64
@@ -57,7 +62,6 @@ jobs:
           cd kernel-5.15
           make a06x_defconfig SHELL=/bin/bash
 
-          # Disable các option gây lỗi trên CI
           make scripts
           ./scripts/config --disable IKHEADERS || true
           ./scripts/config --disable DEBUG_INFO_BTF || true
@@ -68,7 +72,10 @@ jobs:
 
           make prepare SHELL=/bin/bash
 
-          # ✅ Build chỉ kernel image (không build tools/resolve_btfids)
+          # 🔧 Patch để vô hiệu hóa resolve_btfids
+          sed -i 's@^RESOLVE_BTFIDS.*@RESOLVE_BTFIDS := echo@' Makefile
+
+          # ✅ Build chỉ kernel image
           make -j4 Image.gz-dtb SHELL=/bin/bash
 
           echo "✅ Build complete"
