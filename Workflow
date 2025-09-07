@@ -1,0 +1,120 @@
+name: Build A066 Kernel (Clang + Repack boot.img)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gcc-aarch64-linux-gnu \
+            gcc-arm-linux-gnueabi \
+            bc bison flex libssl-dev libelf-dev \
+            build-essential cpio python3 xz-utils tar curl unzip
+
+      - name: Install Android Clang 14.0.7
+        run: |
+          git clone https://gitlab.com/mcdofrenchfreis/android-clang-14.0.7.git clang-14
+          echo "$(pwd)/clang-14/bin" >> $GITHUB_PATH
+          clang --version
+
+      - name: Install dwarves (pahole)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dwarves
+
+      - name: Fix kernel scripts permissions
+        run: |
+          cd kernel-5.15
+          chmod +x scripts/*.sh || true
+          chmod +x scripts/*/*.sh || true
+          chmod +x scripts/remove-stale-files || true
+          if ! head -n1 scripts/remove-stale-files | grep -q '^#!'; then
+            sed -i '1i #!/bin/sh' scripts/remove-stale-files
+          fi
+
+      - name: Build kernel (a06x_defconfig)
+        run: |
+          export ARCH=arm64
+          export SUBARCH=arm64
+          export CC=clang
+          export LLVM=1
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+
+          cd kernel-5.15
+          make a06x_defconfig SHELL=/bin/bash
+
+          make scripts
+          ./scripts/config --disable IKHEADERS || true
+          make olddefconfig
+
+          make prepare SHELL=/bin/bash
+          make -j4 SHELL=/bin/bash   # <= giảm xuống 4 để tránh OOM
+
+          echo "✅ Build complete"
+          ls -lh arch/arm64/boot/
+
+      - name: Upload Image.gz-dtb
+        uses: actions/upload-artifact@v4
+        with:
+          name: Image.gz-dtb
+          path: A066-5G/arch/arm64/boot/Image.gz-dtb
+
+      - name: Pack with AnyKernel3
+        run: |
+          git clone https://github.com/osm0sis/AnyKernel3.git
+          cp A066-5G/arch/arm64/boot/Image.gz-dtb AnyKernel3/
+          cd AnyKernel3
+          zip -r9 ../A066-Kernel.zip ./*
+          echo "✅ Packed AnyKernel3 zip"
+
+      - name: Upload AnyKernel3 zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: A066-Kernel
+          path: A066-Kernel.zip
+
+      - name: Download stock boot.img from release
+        run: |
+          curl -L -o boot.img https://github.com/huyzilo77-bot/A066-5G/releases/download/V1/boot.img
+
+      - name: Repack boot.img
+        run: |
+          git clone https://github.com/osm0sis/mkbootimg_tools.git
+          mkdir boot_orig
+          cd boot_orig
+          ../mkbootimg_tools/unpackbootimg -i ../boot.img
+
+          # Replace kernel with the new one
+          cp ../A066-5G/arch/arm64/boot/Image.gz-dtb ./zImage
+
+          # Repack boot.img
+          ../mkbootimg_tools/mkbootimg \
+            --kernel ./zImage \
+            --ramdisk ./ramdisk.cpio.gz \
+            --dtb ./dtb \
+            --base $(cat boot.img-base 2>/dev/null || echo 0x40000000) \
+            --pagesize $(cat boot.img-pagesize 2>/dev/null || echo 2048) \
+            --cmdline "$(cat boot.img-cmdline 2>/dev/null)" \
+            -o ../boot-new.img
+          cd ..
+          echo "✅ Repacked boot-new.img"
+
+      - name: Upload repacked boot.img
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-new
+          path: boot-new.img
