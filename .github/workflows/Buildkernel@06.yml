@@ -68,7 +68,7 @@ jobs:
 
           make prepare SHELL=/bin/bash
 
-          # ✅ Build chỉ kernel image (bỏ qua resolve_btfids)
+          # ✅ Build chỉ kernel image (không build tools/resolve_btfids)
           make -j4 Image.gz-dtb SHELL=/bin/bash
 
           echo "✅ Build complete"
