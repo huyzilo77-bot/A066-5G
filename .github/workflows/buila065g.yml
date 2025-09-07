@@ -23,23 +23,30 @@ jobs:
           sudo apt-get install -y git wget curl unzip bc build-essential ccache \
             flex bison libssl-dev libncurses5-dev python3 clang lld
 
-      - name: 📦 Install toolchains
+      - name: 📦 Install toolchains (Clang + GCC)
         run: |
           mkdir -p ~/toolchains
           cd ~/toolchains
 
-          # Clang prebuilts
-          git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang
+          # Clone Clang prebuilts từ AOSP
+          if [ ! -d "clang" ]; then
+            git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang
+          fi
 
-          # GCC cross-compiler
-          git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 gcc64
-          git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 gcc32
+          # Clone GCC cross-compiler (aarch64)
+          if [ ! -d "gcc64" ]; then
+            git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 gcc64
+          fi
 
-          echo "PATH=$HOME/toolchains/clang/bin:$PATH" >> $GITHUB_ENV
-          echo "CROSS_COMPILE=$HOME/toolchains/gcc64/bin/aarch64-linux-android-" >> $GITHUB_ENV
-          echo "CROSS_COMPILE_COMPAT=$HOME/toolchains/gcc32/bin/arm-linux-androideabi-" >> $GITHUB_ENV
+          # Tạo symlink để kernel nhận đúng binary (yêu cầu: aarch64-linux-android-gcc)
+          ln -sf ~/toolchains/gcc64/bin/aarch64-linux-android-4.9-gcc ~/toolchains/gcc64/bin/aarch64-linux-android-gcc
+          ln -sf ~/toolchains/gcc64/bin/aarch64-linux-android-4.9-g++ ~/toolchains/gcc64/bin/aarch64-linux-android-g++
+
+          # Xuất env để kernel build scripts nhận
           echo "CC=clang" >> $GITHUB_ENV
-
+          echo "CROSS_COMPILE=$HOME/toolchains/gcc64/bin/aarch64-linux-android-" >> $GITHUB_ENV
+          echo "PATH=$HOME/toolchains/clang/bin:$PATH" >> $GITHUB_ENV
+          
       - name: 🔧 Setup ccache
         run: |
           export USE_CCACHE=1
