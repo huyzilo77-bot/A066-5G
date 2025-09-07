@@ -35,19 +35,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y dwarves
 
-      - name: Fix kernel scripts permissions
+      - name: Fix vdso scripts permissions
         run: |
           cd kernel-5.15
-          chmod +x scripts/*.sh || true
-          chmod +x scripts/*/*.sh || true
-          chmod +x scripts/remove-stale-files || true
-          if ! head -n1 scripts/remove-stale-files | grep -q '^#!'; then
-            sed -i '1i #!/bin/sh' scripts/remove-stale-files
-          fi
+          chmod +x arch/arm64/kernel/vdso/*.sh || true
+          chmod +x arch/arm64/kernel/vdso32/*.sh || true
 
       - name: Patch Makefile to skip resolve_btfids
         run: |
-          sed -i 's/resolve_btfids/# resolve_btfids/' kernel-5.15/Makefile
+          cd kernel-5.15
+          # Comment thay vì xoá để không phá if/else/endif
+          sed -i 's/resolve_btfids/# resolve_btfids/' Makefile
 
       - name: Build kernel (a06x_defconfig)
         run: |
