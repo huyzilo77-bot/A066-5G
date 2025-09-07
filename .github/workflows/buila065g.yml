@@ -120,6 +120,14 @@ jobs:
           cd ../kernel
           bash build/build.sh -j$(nproc)
 
+      - name: Debug outputs
+        run: |
+          echo "📂 Kiểm tra thư mục boot:"
+          ls -lh out/target/product/a06x/obj/KERNEL_OBJ/arch/arm64/boot || true
+
+          echo "📂 Kiểm tra dist:"
+          ls -lh out/target/product/a06x/obj/KERNEL_OBJ/dist || true
+
       - name: 📦 Package AnyKernel3 (KernelSU + SUSFS)
         run: |
           set -eux
