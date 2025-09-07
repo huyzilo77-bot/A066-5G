@@ -1,4 +1,4 @@
-name: Build A066 Kernel v6.1 (Clang 18 + Repack boot.img)
+name: Build A066 Kernel (Clang + Repack boot.img)
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
           gcc-aarch64-linux-gnu \
           gcc-arm-linux-gnueabi \
           bc bison flex libssl-dev libelf-dev \
-          build-essential cpio python3
+          build-essential cpio python3 xz-utils tar
 
     - name: Install AOSP Prebuilt Clang (r530567)
       run: |
@@ -51,20 +51,16 @@ jobs:
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
         cd kernel-5.15
         make a06x_defconfig SHELL=/bin/bash
+
+        # ✅ Fix: Disable IKHEADERS để tránh lỗi kheaders_data.tar.xz
+        make scripts
+        ./scripts/config --disable IKHEADERS
+        make olddefconfig
+
         make prepare SHELL=/bin/bash
         make -j$(nproc) SHELL=/bin/bash
         echo "✅ Build complete"
         ls -lh arch/arm64/boot/
-
-       - name: Disable IKHEADERS (fix kheaders_data.tar.xz error)
-      run: |
-        cd kernel-5.15
-        # đảm bảo có scripts/config
-        make scripts
-        # tắt IKHEADERS để không build kheaders_data.tar.xz
-        ./scripts/config --disable IKHEADERS
-        # regenerate config
-        make olddefconfig
 
     - name: Upload Image.gz-dtb
       uses: actions/upload-artifact@v4
@@ -77,14 +73,14 @@ jobs:
         git clone https://github.com/osm0sis/AnyKernel3.git
         cp kernel-5.15/arch/arm64/boot/Image.gz-dtb AnyKernel3/
         cd AnyKernel3
-        zip -r9 ../A066-Kernel-v6.1.zip ./*
+        zip -r9 ../A066-Kernel.zip ./*
         echo "✅ Packed AnyKernel3 zip"
 
     - name: Upload AnyKernel3 zip
       uses: actions/upload-artifact@v4
       with:
-        name: A066-Kernel-v6.1
-        path: A066-Kernel-v6.1.zip
+        name: A066-Kernel
+        path: A066-Kernel.zip
 
     - name: Download stock boot.img from release
       run: |
