@@ -19,13 +19,22 @@ jobs:
       run: |
         git clone --depth=1 https://github.com/kdrag0n/proton-clang toolchain
 
+    - name: Fix permissions
+      run: |
+        chmod +x kernel-5.15/scripts/*.sh || true
+        chmod +x kernel-5.15/scripts/*/*.sh || true
+
+
     - name: Build kernel (a06x_defconfig)
       run: |
         export PATH=$PWD/toolchain/bin:$PATH
         export ARCH=arm64
         export SUBARCH=arm64
+        export CC=clang
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+        chmod +x kernel-5.15/scripts/*.sh || true
+        chmod +x kernel-5.15/scripts/*/*.sh || true
         cd kernel-5.15
         make a06x_defconfig
         make -j$(nproc)
