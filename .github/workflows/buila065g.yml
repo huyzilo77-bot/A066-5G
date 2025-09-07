@@ -24,12 +24,12 @@ jobs:
           bc bison flex libssl-dev libelf-dev \
           build-essential cpio python3
 
-    - name: Install AOSP Prebuilt Clang
+    - name: Install AOSP Prebuilt Clang (r530567)
       run: |
-        git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang-prebuilt
-        # lấy bản mới nhất trong thư mục prebuilts
-        CLANG_DIR=$(ls clang-prebuilt | grep clang- | sort -V | tail -n1)
-        echo "$(pwd)/clang-prebuilt/$CLANG_DIR/bin" >> $GITHUB_PATH
+        wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/master/clang-r530567.tar.gz
+        mkdir -p clang-prebuilt
+        tar -xzf clang-r530567.tar.gz -C clang-prebuilt
+        echo "$(pwd)/clang-prebuilt/bin" >> $GITHUB_PATH
         clang --version
 
     - name: Fix permissions for kernel scripts
