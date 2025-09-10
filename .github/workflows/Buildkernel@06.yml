@@ -26,6 +26,13 @@ jobs:
          cd kernel-5.15
          echo "Using local kernel source from repo"
          ls -l arch/arm64/configs/
+      
+      - name: Fix Script Permissions
+      run: |
+        cd kernel-5.15
+        chmod +x -R scripts/*
+        chmod +x -R arch/arm64/kernel/vdso/*
+        chmod +x -R arch/arm64/kernel/vdso32/*
 
       - name: Clone AnyKernel3 and Other Dependencies
         run: |
@@ -57,6 +64,12 @@ jobs:
           cd kernel-5.15
           cp ../kernel_patches/wild/susfs_fix_patches/v1.5.9/*.patch ./
           for p in *.patch; do patch -p1 --forward --fuzz=3 < $p || true; done
+          
+      - name: Install Android Clang
+      run: |
+        git clone https://gitlab.com/mcdofernchfreis/android-clang-14.0.7.git clang-14
+        echo "$(pwd)/clang-14/bin" >> $GITHUB_PATH
+        clang --version
 
       - name: Configure Kernel
         run: |
