@@ -65,9 +65,9 @@ jobs:
           cp ../kernel_patches/wild/susfs_fix_patches/v1.5.9/*.patch ./
           for p in *.patch; do patch -p1 --forward --fuzz=3 < $p || true; done
           
-      - name: Install Android Clang
-        run: |
-          git clone https://gitlab.com/mcdofernchfreis/android-clang-14.0.7.git clang-14
+      - name: Install Android Clang 14.0.7
+         run: |
+          git clone https://gitlab.com/mcdofrenchfreis/android-clang-14.0.7.git clang-14
           echo "$(pwd)/clang-14/bin" >> $GITHUB_PATH
           clang --version
 
