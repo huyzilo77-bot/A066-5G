@@ -67,10 +67,16 @@ jobs:
           
       - name: Install AOSP Clang
         run: |
-         git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 \
-         -b master --depth=1 clang-aosp
-         echo "$(pwd)/clang-aosp/clang-r*/bin" >> $GITHUB_PATH
-         clang --version
+          git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b master --depth=1 clang-aosp
+
+          # Tìm đúng thư mục clang-r* bên trong
+          CLANG_DIR=$(find clang-aosp -type d -name "clang-r*" | head -n 1)
+
+          echo "$PWD/$CLANG_DIR/bin" >> $GITHUB_PATH
+          export PATH="$PWD/$CLANG_DIR/bin:$PATH"
+
+          clang --version
+          ld.lld --version
 
       - name: Configure Kernel
         run: |
