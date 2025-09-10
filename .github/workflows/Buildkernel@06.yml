@@ -66,7 +66,7 @@ jobs:
           for p in *.patch; do patch -p1 --forward --fuzz=3 < $p || true; done
           
       - name: Install Android Clang 14.0.7
-         run: |
+        run: |
           git clone https://gitlab.com/mcdofrenchfreis/android-clang-14.0.7.git clang-14
           echo "$(pwd)/clang-14/bin" >> $GITHUB_PATH
           clang --version
