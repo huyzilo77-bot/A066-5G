@@ -55,7 +55,7 @@ jobs:
           # Comment thay vì xoá để không phá if/else/endif
           sed -i 's/resolve_btfids/# resolve_btfids/' Makefile
 
-      - name: Build kernel (a06x_defconfig)
+      - name: Build kernel (a06x_defconfig, only Image.gz-dtb)
         run: |
           export ARCH=arm64
           export SUBARCH=arm64
@@ -67,24 +67,11 @@ jobs:
           cd kernel-5.15
           make a06x_defconfig SHELL=/bin/bash
 
-          make scripts
-          ./scripts/config --disable IKHEADERS || true
-          ./scripts/config --disable DEBUG_INFO_BTF || true
-          ./scripts/config --disable BPF || true
-          ./scripts/config --disable BPF_SYSCALL || true
-          ./scripts/config --disable PAHOLE || true
-          make olddefconfig
-
-          make prepare SHELL=/bin/bash
-
-          # 🔧 Xoá hẳn rule resolve_btfids
-          sed -i '/resolve_btfids/d' Makefile
-
-          # ✅ Build kernel image
-          make -j4 Image.gz-dtb SHELL=/bin/bash
+          # chỉ build kernel image, bỏ qua tool phụ
+          make -j$(nproc) Image.gz-dtb SHELL=/bin/bash
 
           echo "✅ Build complete"
-          ls -lh arch/arm64/boot/
+          ls -lh arch/arm64/boot/Image.gz-dtb
 
       - name: Upload Image.gz-dtb
         uses: actions/upload-artifact@v4
