@@ -65,11 +65,11 @@ jobs:
           cp ../kernel_patches/wild/susfs_fix_patches/v1.5.9/*.patch ./
           for p in *.patch; do patch -p1 --forward --fuzz=3 < $p || true; done
           
-      - name: Install Android Clang 14.0.7
+      - name: Install AOSP Clang
         run: |
-          git clone https://gitlab.com/mcdofrenchfreis/android-clang-14.0.7.git clang-14
-          echo "$(pwd)/clang-14/bin" >> $GITHUB_PATH
-          clang --version
+          git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -         b master --depth=1 clang-aosp
+           echo "$(pwd)/clang-aosp/clang-r*/bin" >> $GITHUB_PATH
+           clang --version
 
       - name: Configure Kernel
         run: |
