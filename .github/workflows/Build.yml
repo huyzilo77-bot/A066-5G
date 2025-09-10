@@ -1,0 +1,36 @@
+name: Build All Kernels
+
+on:
+  workflow_dispatch:   # Có nút "Run workflow" trên GitHub
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  # Android 13 - Kernel 5.15 (nhiều sublevel)
+  build-a13-5-15:
+    uses: ./.github/workflows/build.yml
+    with:
+      android_version: "android13"
+      kernel_version: "5.15"
+      sub_level: "151"
+      os_patch_level: "2024-08"
+
+  # Android 14 - Kernel 6.1
+  build-a14-6-1:
+    uses: ./.github/workflows/build.yml
+    with:
+      android_version: "android14"
+      kernel_version: "6.1"
+      sub_level: "42"
+      os_patch_level: "2024-10"
+
+  # Android 15 - Kernel 6.6
+  build-a15-6-6:
+    uses: ./.github/workflows/build.yml
+    with:
+      android_version: "android15"
+      kernel_version: "6.6"
+      sub_level: "15"
+      os_patch_level: "2025-01"
