@@ -67,9 +67,10 @@ jobs:
           
       - name: Install AOSP Clang
         run: |
-          git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -         b master --depth=1 clang-aosp
-           echo "$(pwd)/clang-aosp/clang-r*/bin" >> $GITHUB_PATH
-           clang --version
+         git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 \
+         -b master --depth=1 clang-aosp
+         echo "$(pwd)/clang-aosp/clang-r*/bin" >> $GITHUB_PATH
+         clang --version
 
       - name: Configure Kernel
         run: |
