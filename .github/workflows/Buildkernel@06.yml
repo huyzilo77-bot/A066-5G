@@ -21,11 +21,11 @@ jobs:
           sudo apt update
           sudo apt install -y libelf-dev libssl-dev build-essential bc bison flex zip curl wget python3
 
-      - name: Clone Kernel Source
+      - name: Use Existing Kernel Source
         run: |
-          git clone https://github.com/huyzilo77-bot/A066-5G.git -b main kernel-5.15
-          cd kernel-5.15
-          ls -l arch/arm64/configs/
+         cd kernel-5.15
+         echo "Using local kernel source from repo"
+         ls -l arch/arm64/configs/
 
       - name: Clone AnyKernel3 and Other Dependencies
         run: |
