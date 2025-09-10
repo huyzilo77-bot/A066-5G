@@ -1,0 +1,66 @@
+name: Kernel Build Process
+permissions:
+  contents: write
+  actions: write
+
+on:
+  workflow_call:
+    inputs:
+      android_version:
+        required: true
+        type: string
+      kernel_version:
+        required: true
+        type: string
+      sub_level:
+        required: true
+        type: string
+      os_patch_level:
+        required: true
+        type: string
+      revision:
+        required: false
+        type: string
+
+jobs:
+  build-gki:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout kernel source
+        uses: actions/checkout@v4
+
+      - name: Setup Build Environment
+        run: |
+          sudo apt update && sudo apt install -y \
+            bc bison build-essential ccache flex \
+            git gnupg gperf libncurses5-dev \
+            libssl-dev wget python3 zlib1g-dev \
+            libelf-dev llvm lld clang
+
+      - name: Set Environment
+        run: |
+          echo "ARCH=arm64" >> $GITHUB_ENV
+          echo "SUBARCH=arm64" >> $GITHUB_ENV
+          echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
+          echo "PATH=/usr/lib/llvm-18/bin:$PATH" >> $GITHUB_ENV
+
+      - name: Build Kernel
+        run: |
+          cd kernel-5.15
+          make O=out a06x_defconfig
+          make -j$(nproc --all) O=out \
+            ARCH=arm64 \
+            CC=clang \
+            LD=ld.lld \
+            CROSS_COMPILE=aarch64-linux-gnu- \
+            CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+
+      - name: Upload Kernel Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-image-${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}
+          path: |
+            kernel-5.15/out/arch/arm64/boot/Image
+            kernel-5.15/out/arch/arm64/boot/Image.gz
