@@ -1,1 +1,20 @@
+name: Kernel Config - A13 5.15
 
+on:
+  workflow_dispatch:
+
+jobs:
+  build-kernels-a13-5-15:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - sub_level: "151"
+            os_patch_level: "2024-08"
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      android_version: "android13"
+      kernel_version: "5.15"
+      sub_level: ${{ matrix.sub_level }}
+      os_patch_level: ${{ matrix.os_patch_level }}
