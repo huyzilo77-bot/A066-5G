@@ -28,11 +28,11 @@ jobs:
          ls -l arch/arm64/configs/
       
       - name: Fix Script Permissions
-      run: |
-        cd kernel-5.15
-        chmod +x -R scripts/*
-        chmod +x -R arch/arm64/kernel/vdso/*
-        chmod +x -R arch/arm64/kernel/vdso32/*
+        run: |
+          cd kernel-5.15
+          chmod +x -R scripts/*
+          chmod +x -R arch/arm64/kernel/vdso/*
+          chmod +x -R arch/arm64/kernel/vdso32/*
 
       - name: Clone AnyKernel3 and Other Dependencies
         run: |
@@ -69,7 +69,7 @@ jobs:
         run: |
           git clone https://gitlab.com/mcdofernchfreis/android-clang-14.0.7.git clang-14
           echo "$(pwd)/clang-14/bin" >> $GITHUB_PATH
-         clang --version
+          clang --version
 
       - name: Configure Kernel
         run: |
@@ -106,3 +106,4 @@ jobs:
             🔹 Features: WKSU + SUSFS patches applied  
             🔹 Auto-built by GitHub Actions
           files: A06x-Kernel-WKSU-SUSFS.zip
+          
