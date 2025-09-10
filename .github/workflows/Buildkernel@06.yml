@@ -66,10 +66,10 @@ jobs:
           for p in *.patch; do patch -p1 --forward --fuzz=3 < $p || true; done
           
       - name: Install Android Clang
-      run: |
-        git clone https://gitlab.com/mcdofernchfreis/android-clang-14.0.7.git clang-14
-        echo "$(pwd)/clang-14/bin" >> $GITHUB_PATH
-        clang --version
+        run: |
+          git clone https://gitlab.com/mcdofernchfreis/android-clang-14.0.7.git clang-14
+          echo "$(pwd)/clang-14/bin" >> $GITHUB_PATH
+         clang --version
 
       - name: Configure Kernel
         run: |
