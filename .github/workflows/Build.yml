@@ -1,36 +1,32 @@
-name: Build All Kernels
-
-on:
-  workflow_dispatch:   # Có nút "Run workflow" trên GitHub
+name: Build Kernels
 
 permissions:
   contents: write
   actions: write
 
+on:
+  workflow_dispatch:
+
 jobs:
-  # Android 13 - Kernel 5.15 (nhiều sublevel)
   build-a13-5-15:
-    uses: ./.github/workflows/build.yml
-    with:
-      android_version: "android13"
-      kernel_version: "5.15"
-      sub_level: "151"
-      os_patch_level: "2024-08"
+    uses: ./.github/workflows/kernel-a13-5-15.yml
+    secrets: inherit
 
-  # Android 14 - Kernel 6.1
-  build-a14-6-1:
-    uses: ./.github/workflows/build.yml
-    with:
-      android_version: "android14"
-      kernel_version: "6.1"
-      sub_level: "42"
-      os_patch_level: "2024-10"
+  release:
+    runs-on: ubuntu-latest
+    needs: [ build-a13-5-15 ]
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./downloaded-artifacts
 
-  # Android 15 - Kernel 6.6
-  build-a15-6-6:
-    uses: ./.github/workflows/build.yml
-    with:
-      android_version: "android15"
-      kernel_version: "6.6"
-      sub_level: "15"
-      os_patch_level: "2025-01"
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0
+          prerelease: false
+          files: ./downloaded-artifacts/**/*
+          name: "Samsung A06 5G Kernel - Android 13 5.15"
+          body: |
+            Custom Kernel build for Samsung A06 5G (Android 13, kernel 5.15.151)
